@@ -7,12 +7,6 @@ const app = express();
 const cors = require('cors');
 
 
-
-
-
-
-
-
 const indexRouter = require('./routes');
 
 app.use(cors());

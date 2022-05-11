@@ -1,5 +1,5 @@
 const fboption = {};
-fboption.host = 'localhost';
+fboption.host = '192.168.100.4';
 fboption.port = 3050;
 fboption.database = 'SCT';
 fboption.user = 'SYSDBA';
