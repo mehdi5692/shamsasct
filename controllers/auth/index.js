@@ -13,16 +13,16 @@ function sha1(txt) {
 
 const controller = {
     login: (req, res) => {
-        fb.attach(fbOption, function(err, db) {
-            if(err) 
-                throw err;
-            db.sequentially("select * from TPUB_USERS", function(row, index) {
-                // console.log(result);
-                var pass = sha1('123');
-                res.json({'hash': pass.toUpperCase(), 'lenght': pass.length});
-            });
-            db.detach();
-        });
+        // fb.attach(fbOption, function(err, db) {
+        //     if(err) 
+        //         throw err;
+        //     db.sequentially("select * from TPUB_USERS", function(row, index) {
+        //         // console.log(result);
+        //     });
+        //     db.detach();
+        // });
+        var pass = sha1('123');
+        res.json({'hash': pass.toUpperCase(), 'lenght': pass.length});
         // res.send("connection successfully");
     }
 
