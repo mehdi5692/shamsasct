@@ -5,14 +5,12 @@ const crypto = require('crypto');
 const createHash = crypto.createHash;
 
 const fboption = {};
-fboption.host = '192.168.100.4';
-fboption.port = 3050;
-fboption.database = 'sct';
-fboption.user = 'SYSDBA';
-fboption.password = 'masterkey';
-fboption.characterset = 'win-1256';
-
-
+                fboption.host = "localhost";
+                fboption.port = 3050;
+                fboption.database = "SCT";
+                fboption.user = "SYSDBA";
+                fboption.password = "masterkey";
+                fboption.characterset = "win-1256";
 
 function sha1(txt) {
 	return createHash('md5') // <-- You can use other than sha1
@@ -23,42 +21,40 @@ function sha1(txt) {
 const controller = {
     login: (req, res) => {
         console.log("**********************************");
-        // console.log(req);
         console.log(req.body);
+        outputCode = 0;
         if(req.body.username){
             if(req.body.userpass) {
                 var pass = sha1(req.body.userpass).toUpperCase();
-                console.log(pass);
-                Firebird.attach(fboption, function(err, db) {
-                    if(err) {
-                        throw err;
-                    }
-                    db.query('SELECT USR_UID, USRPASSWORD, USRFULLNAME, USRISACTIVE, USRISADMIN, USRACCOUNT, USRDESCRIPTION FROM TPUB_USERS WHERE USRACCOUNT=? AND USRPASSWORD=?', [req.body.username, pass],function(err, result) {
-                        // console.log(result);
-                        usucsses = result.length;
-                        console.log("count"+result);
-                        if (usucsses > 0) {
-                            if (result[0].USRISACTIVE == 0) {
-                                res.json({"msg": 'کاربری شما غیر فعال می باشد .'});
-                            } else {
-                                if (result[0].USRISADMIN == 1) {
-                                    console.log('admin');
-                                    res.json({"msg": 'شما مدیر سیستم می باشید .'});
-                                } else {
-                                    res.json({"msg": 'خوش آمدید'});
-                                }
-                            }
-                        } else res.json({"msg": 'نام کاربری یا رمز عبور اشتباه می باشد .'});
-                    });
+                console.log(req.body.username);
+                console.log(pass.toUpperCase());
+                Firebird.attach(fboption, function (err, db) {
+                    if (err) throw err;
+                    console.log("Connection successfully...");
+                    db.query(
+                        "SELECT USR_UID, USRPASSWORD, USRFULLNAME, USRISACTIVE, USRISADMIN, USRACCOUNT, USRDESCRIPTION FROM TPUB_USERS WHERE USRACCOUNT=? AND USRPASSWORD=?",
+                        [req.body.username, sha1(req.body.userpass).toUpperCase()],
+                        function (err, result) {
+                            if (err) throw err;
+                            console.log("Connection Database successfully...");
+                            ussuccess = result.length;
+                            console.log('count:' + ussuccess);
+                            if(ussuccess){
+                                console.log('Ok');
+                                console.log(result[0].USRPASSWORD.toString(), result[0].USRACCOUNT.toString());
+                                if (result[0].USRISACTIVE == 0) {
+                                    res.status(200).json({msg: 'کاربری شما غیر فعال می باشد .'});
+                                } else res.status(200).json({msg : "خوش آمدید ..."});
+                            } else res.status(400).json({msg : "نام کاربری یا رمز عبور شما اشتباه می باشد ."});
+                        }
+                    );
                     db.detach();
                 });
             } else {
-                res.status(400).send({"msg" : 'Note Password'});
+                res.status(400).json({msg : 'Note Password'});
             }
         }
         var pass = sha1('123');
-        res.json({'hash': pass.toUpperCase(), 'lenght': pass.length});
-        // res.send("connection successfully");
     }
 
 }
