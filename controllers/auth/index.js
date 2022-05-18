@@ -40,8 +40,8 @@ const controller = {
                                     const userId = result[0].USR_UID.toString();
                                     console.log(userId);
                                     const userName = result[0].USRACCOUNT.toString();
-                                    const userFullName = iconv.decode(result[0].USRFULLNAME.toString, 'WINDOWS-1256');
-                                    const userDes = iconv.decode(result[0].USRDESCRIPTION.toString, 'WINDOWS-1256');
+                                    const userFullName = iconv.decode(result[0].USRFULLNAME, 'WINDOWS-1256');
+                                    const userDes = iconv.decode(result[0].USRDESCRIPTION, 'WINDOWS-1256');
                                     const accessToken = jwt.sign({userId, userName, userFullName, userDes}, process.env.ACCESS_TOKEN_SECRET,{
                                         expiresIn: '15s'
                                     });
