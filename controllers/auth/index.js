@@ -49,10 +49,10 @@ const controller = {
                                         expiresIn: '1d'
                                     });
                                     console.log(accessToken);
-                                    console.log("*********************************************************************");
-                                    console.log(refreshToken);
+                                    // console.log("*********************************************************************");
+                                    // console.log(refreshToken);
                                     db.query('update TPUB_USERS set REFRESH_TOKEN = ? where USR_UID = ?',
-                                        [refreshToken, userId],
+                                        [accessToken, userId],
                                         function(err, result) {
                                             console.log(result);
                                             db.detach();
@@ -73,6 +73,28 @@ const controller = {
             }
         }
         var pass = sha1('123');
+    },
+    token: (req, res) => {
+        if(req.body.accessToken) {
+            console.log(req.body.accessToken);
+            jwt.verify(req.body.accessToken, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+                if(err) return res.sendStatus(401);
+                req.userId = decoded.userId;
+                Firebird.attach(fboption, (er, db ) => {
+                    if (err) return res.sendStatus(402);
+                    console.log("Connection successfully...");
+                    db.query('select REFRESH_TOKEN from TPUB_USERS where USR_UID = ?', [decoded.userId], (err, result) => {
+                        if(result.length) {
+                            console.log(result[0].REFRESH_TOKEN);
+                            if (req.body.accessToken === result[0].REFRESH_TOKEN) {
+                                console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                                res.status(200).json(result[0].REFRESH_TOKEN);
+                            } else return res.sendStatus(403);
+                        } else return res.sendStatus(404);
+                    })
+                })
+            });
+        }
     }
 
 }
