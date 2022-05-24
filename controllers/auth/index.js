@@ -59,13 +59,10 @@ const controller = {
                                             res.status(200).json({accessToken});
                                             db.detach();
                                         });
-                                       
                                     // res.cookie('refreshToken', refreshToken,{
                                     //     httpOnly: true,
                                     //     maxAge: 24 * 60 * 60 * 1000
                                     // });
-                                    
-                                    
                                 } else res.status(404).json({msg: 'کاربری شما غیر فعال می باشد .'});
                             } else res.status(404).json({msg : "نام کاربری یا رمز عبور شما اشتباه می باشد ."});
                         }
