@@ -14,38 +14,41 @@ function sha1(txt) {
 
 const controller = {
     login: (req, res) => {
-        console.log("Login**********************************");
+        console.log("Login: ==========================================");
         console.log(req.body);
         outputCode = 0;
         if(req.body.user){
             if(req.body.pass) {
                 var pass = sha1(req.body.pass).toUpperCase();
-                console.log(req.body.user);
-                console.log(pass.toUpperCase());
+                // console.log(req.body.user);
+                // console.log(pass.toUpperCase());
                 Firebird.attach(fboption, function (err, db) {
                     if (err) throw err;
-                    console.log("Connection successfully...");
-                    db.query(
-                        "SELECT USR_UID, USRPASSWORD, USRFULLNAME, USRISACTIVE, USRISADMIN, USRACCOUNT, USRDESCRIPTION FROM TPUB_USERS WHERE USRACCOUNT=? AND USRPASSWORD=?",
+                    // console.log("Connection successfully...");
+                    sql = "SELECT TUS.USR_UID, LUC.CNT_UID, TUS.USRPASSWORD, TUS.USRFULLNAME, TUS.USRISACTIVE, TUS.USRISADMIN, TUS.USRACCOUNT, TUS.USRDESCRIPTION \n" +  
+                        "FROM TPUB_USERS TUS LEFT JOIN TPUB_LNK_USER_TO_CONTACTS LUC on LUC.USR_UID = TUS.USR_UID WHERE USRACCOUNT=? AND USRPASSWORD=?";
+                    // console.log(sql);
+                    db.query(sql,
                         [req.body.user, sha1(req.body.pass).toUpperCase()],
                         function (err, result) {
                             if (err) throw err;
-                            console.log("Connection Database successfully...");
+                            // console.log("Connection Database successfully...");
                             ussuccess = result.length;
-                            console.log('count:' + ussuccess);
+                            // console.log('count:' + ussuccess);
                             if(ussuccess){
-                                console.log('Ok');
-                                console.log(result[0].USRPASSWORD.toString(), result[0].USRACCOUNT.toString());
+                                // console.log('Ok');
+                                // console.log(result[0].USRPASSWORD.toString(), result[0].USRACCOUNT.toString());
                                 if (result[0].USRISACTIVE == 1) {
                                     const userId = result[0].USR_UID.toString();
-                                    console.log(userId);
+                                    const cntId = result[0].CNT_UID.toString();
+                                    // console.log(userId);
                                     const userName = result[0].USRACCOUNT.toString();
                                     const userFullName = iconv.decode(result[0].USRFULLNAME, 'WINDOWS-1256');
                                     const userDes = iconv.decode(result[0].USRDESCRIPTION, 'WINDOWS-1256');
-                                    const accessToken = jwt.sign({userId, userName, userFullName, userDes}, process.env.ACCESS_TOKEN_SECRET,{
+                                    const accessToken = jwt.sign({userId, cntId, userName, userFullName, userDes}, process.env.ACCESS_TOKEN_SECRET,{
                                         expiresIn: '60m'
                                     });
-                                    const refreshToken = jwt.sign({userId, userName, userFullName, userDes}, process.env.REFRESH_TOKEN_SECRET,{
+                                    const refreshToken = jwt.sign({userId, cntId, userName, userFullName, userDes}, process.env.REFRESH_TOKEN_SECRET,{
                                         expiresIn: '1d'
                                     });
                                     console.log("////////////" + accessToken);
@@ -54,7 +57,7 @@ const controller = {
                                     db.query('update TPUB_USERS set REFRESH_TOKEN = ? where USR_UID = ?',
                                         [accessToken, userId],
                                         function(err, result) {
-                                            console.log("Result:" + result);
+                                            // console.log("Result:" + result);
                                             db.detach();
                                             res.status(200).json({accessToken});
                                             db.detach();
@@ -75,7 +78,32 @@ const controller = {
         }
     },
     token: (req, res) => {
-        console.log("Token*************************************");
+        console.log("Token: *************************************");
+        if(req.body.accessToken) {
+            // console.log("req.token: " + req.body.accessToken);
+            jwt.verify(req.body.accessToken, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+                if(err) return res.sendStatus(401);
+                // console.log("jwtverify: " + decoded.userId);
+                // req.userId = decoded.userId;
+                Firebird.attach(fboption, function (err, db) {
+                    if (err) return res.sendStatus(402);
+                    // console.log("Connection successfully...");
+                    db.query('select REFRESH_TOKEN from TPUB_USERS where USR_UID = ?', [decoded.userId], (err, result) => {
+                        if(result.length) {
+                            // console.log(result[0].REFRESH_TOKEN);
+                            if (req.body.accessToken === result[0].REFRESH_TOKEN) {
+                                // console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                                res.status(200).json({accessToken: result[0].REFRESH_TOKEN});
+                            } else return res.sendStatus(403);
+                        } else return res.sendStatus(404);
+                        db.detach();
+                    });
+                });
+            });
+        }
+    },
+    logout: (req, res) => {
+        console.log("Logout: #######################################");
         if(req.body.accessToken) {
             console.log("req.token: " + req.body.accessToken);
             jwt.verify(req.body.accessToken, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
@@ -85,7 +113,7 @@ const controller = {
                 Firebird.attach(fboption, function (err, db) {
                     if (err) return res.sendStatus(402);
                     console.log("Connection successfully...");
-                    db.query('select REFRESH_TOKEN from TPUB_USERS where USR_UID = ?', [decoded.userId], (err, result) => {
+                    db.query('update TPUB_USERS set REFRESH_TOKEN = ? where USR_UID = ?', [null, decoded.userId], (err, result) => {
                         if(result.length) {
                             console.log(result[0].REFRESH_TOKEN);
                             if (req.body.accessToken === result[0].REFRESH_TOKEN) {
