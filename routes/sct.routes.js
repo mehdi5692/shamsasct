@@ -7,5 +7,6 @@ const verifyToken = require('../middleware/verifyToken');
 router.post('/', sctController.create);
 
 router.get('/', verifyToken, sctController.fetchAll);
+router.get('/cardtable', verifyToken, sctController.cardtable);
 
 module.exports = router;

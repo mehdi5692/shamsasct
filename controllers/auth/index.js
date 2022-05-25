@@ -82,20 +82,21 @@ const controller = {
         if(req.body.accessToken) {
             // console.log("req.token: " + req.body.accessToken);
             jwt.verify(req.body.accessToken, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-                if(err) return res.sendStatus(401);
+                if(err) return res.status(401).json({msg: 'کاربری شما غیر فعال می باشد .'});
                 // console.log("jwtverify: " + decoded.userId);
                 // req.userId = decoded.userId;
                 Firebird.attach(fboption, function (err, db) {
-                    if (err) return res.sendStatus(402);
+                    if (err) return res.status(402).json({msg: 'کاربری شما غیر فعال می باشد .'});
                     // console.log("Connection successfully...");
                     db.query('select REFRESH_TOKEN from TPUB_USERS where USR_UID = ?', [decoded.userId], (err, result) => {
                         if(result.length) {
-                            // console.log(result[0].REFRESH_TOKEN);
-                            if (req.body.accessToken === result[0].REFRESH_TOKEN) {
-                                // console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                                res.status(200).json({accessToken: result[0].REFRESH_TOKEN});
-                            } else return res.sendStatus(403);
-                        } else return res.sendStatus(404);
+                            console.log(result[0].REFRESH_TOKEN);
+                            const atoken = result[0].REFRESH_TOKEN;
+                            if (req.body.accessToken == result[0].REFRESH_TOKEN) {
+                                console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                                res.status(200).json({msg: 'authorized'});
+                            } else return res.status(403).json({msg: 'کاربری شما غیر فعال می باشد .'});
+                        } else return res.status(404).json({msg: 'کاربری شما غیر فعال می باشد .'});
                         db.detach();
                     });
                 });
@@ -104,25 +105,13 @@ const controller = {
     },
     logout: (req, res) => {
         console.log("Logout: #######################################");
-        if(req.body.accessToken) {
-            console.log("req.token: " + req.body.accessToken);
-            jwt.verify(req.body.accessToken, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-                if(err) return res.sendStatus(401);
-                console.log("jwtverify: " + decoded.userId);
-                // req.userId = decoded.userId;
-                Firebird.attach(fboption, function (err, db) {
-                    if (err) return res.sendStatus(402);
-                    console.log("Connection successfully...");
-                    db.query('update TPUB_USERS set REFRESH_TOKEN = ? where USR_UID = ?', [null, decoded.userId], (err, result) => {
-                        if(result.length) {
-                            console.log(result[0].REFRESH_TOKEN);
-                            if (req.body.accessToken === result[0].REFRESH_TOKEN) {
-                                console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                                res.status(200).json({accessToken: result[0].REFRESH_TOKEN});
-                            } else return res.sendStatus(403);
-                        } else return res.sendStatus(404);
-                        db.detach();
-                    });
+        if(req.userId) {
+            Firebird.attach(fboption, function (err, db) {
+                if (err) return res.status(402).json({msg: 'مشکل در ارتباط با پایگاه داده.'});
+                db.query('update TPUB_USERS set REFRESH_TOKEN = ? where USR_UID = ?', [null, req.userId], (err, result) => {
+                    console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                    res.status(200).json({msg: "logout"});
+                    db.detach();
                 });
             });
         }
