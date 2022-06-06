@@ -8,5 +8,7 @@ router.post('/', sctController.create);
 
 router.get('/', verifyToken, sctController.fetchAll);
 router.get('/cardtable', verifyToken, sctController.cardtable);
+router.get('/allincomdocuments', verifyToken, sctController.allincomdocuments);
+router.get('/allissudocuments', verifyToken, sctController.allissudocuments);
 
 module.exports = router;
