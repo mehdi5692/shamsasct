@@ -27,11 +27,16 @@ const controller = {
                     "LEFT JOIN TDOC_DOCUMENT_RECIPIENTS DCR ON DCR.DOC_UID = DC.DOC_UID \n"+
                     "LEFT JOIN TDOC_DOCUMENT_INFO DCI ON DCI.DOC_UID = DC.DOC_UID \n"+
                     "LEFT JOIN TDOC_DOCUMENT_REGISTER DCRG ON DCRG.DOC_UID = DC.DOC_UID \n"+
-                    "WHERE DCR.CNT_UID = ?";
+                    "WHERE DCR.CNT_UID = ? AND DCR.PF_READ = 0";
                 db.query(sql1, [req.cntId], (err, result) => {
                     if(result.length) {
                         console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                        res.status(200).json(JSON.stringify(result));
+                        // for (var i=0; i < result.length; i++){
+                        //     if (result[i].DOC_UID) result[i].DOC_UID = JSON.stringify(result[i].DOC_UID);
+                        //     if (result[i].DOC_TYPE) result[i].DOC_TYPE = JSON.stringify(result[i].DOC_TYPE.toString());
+                        //     if (result[i].DOC_TITLE) result[i].DOC_TITLE = iconv.decode(result[i].DOC_TITLE, 'WINDOWS-1256');
+                        // }
+                        res.status(200).json(result);
                     } else return res.status(404).json({msg: 'کاربری شما غیر فعال می باشد .'});
                     db.detach();
                 });
