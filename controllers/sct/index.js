@@ -21,7 +21,7 @@ const controller = {
             Firebird.attach(fboption, function (err, db) {
                 if (err) return res.status(403).json({msg: 'کاربری شما غیر فعال می باشد .'});
                 // console.log("Connection successfully...");
-                sql1 = "SELECT DC.DOC_UID, DC.DOC_TYPE, DC.DOC_SUBJECT, DCR.PF_READ, DCR.PF_ENTERANCE_DATE, DCI.DOC_SENDER, DCI.DOC_RECIPIENTS, DCRG.DOC_FULL_CODE  \n"+
+                sql1 = "SELECT DC.DOC_UID, DC.DOC_TYPE, DC.DOC_TITLE, DC.DOC_SUBJECT, DCR.PF_READ, DCR.PF_ENTERANCE_DATE, DCI.DOC_SENDER, DCI.DOC_RECIPIENTS, DCRG.DOC_FULL_CODE  \n"+
                     "FROM TDOC_DOCUMENTS DC \n"+
                     "LEFT JOIN TDOC_DOCUMENT_RECIPIENTS DCR ON DCR.DOC_UID = DC.DOC_UID \n"+
                     "LEFT JOIN TDOC_DOCUMENT_INFO DCI ON DCI.DOC_UID = DC.DOC_UID \n"+
@@ -43,7 +43,7 @@ const controller = {
             Firebird.attach(fboption, function (err, db) {
                 if (err) return res.status(403).json({msg: 'کاربری شما غیر فعال می باشد .'});
                 // console.log("Connection successfully...");
-                sql1 = "SELECT DC.DOC_UID, DC.DOC_TYPE, DC.DOC_SUBJECT, DCR.PF_READ, DCR.PF_ENTERANCE_DATE, DCI.DOC_SENDER, DCI.DOC_RECIPIENTS, DCRG.DOC_FULL_CODE  \n"+
+                sql1 = "SELECT DC.DOC_UID, DC.DOC_TYPE, DC.DOC_TITLE, DC.DOC_SUBJECT, DCR.PF_READ, DCR.PF_ENTERANCE_DATE, DCI.DOC_SENDER, DCI.DOC_RECIPIENTS, DCRG.DOC_FULL_CODE  \n"+
                     "FROM TDOC_DOCUMENTS DC \n"+
                     "LEFT JOIN TDOC_DOCUMENT_RECIPIENTS DCR ON DCR.DOC_UID = DC.DOC_UID \n"+
                     "LEFT JOIN TDOC_DOCUMENT_INFO DCI ON DCI.DOC_UID = DC.DOC_UID \n"+
@@ -64,7 +64,7 @@ const controller = {
             Firebird.attach(fboption, function (err, db) {
                 if (err) return res.status(403).json({msg: 'کاربری شما غیر فعال می باشد .'});
                 // console.log("Connection successfully...");
-                sql1 = "SELECT DC.DOC_UID, DC.DOC_TYPE, DC.DOC_SUBJECT, DCR.PF_READ, DCR.PF_ENTERANCE_DATE, DCI.DOC_SENDER, DCI.DOC_RECIPIENTS, DCRG.DOC_FULL_CODE  \n"+
+                sql1 = "SELECT DC.DOC_UID, DC.DOC_TYPE, DC.DOC_TITLE, DC.DOC_SUBJECT, DCR.PF_READ, DCR.PF_ENTERANCE_DATE, DCI.DOC_SENDER, DCI.DOC_RECIPIENTS, DCRG.DOC_FULL_CODE  \n"+
                     "FROM TDOC_DOCUMENTS DC \n"+
                     "LEFT JOIN TDOC_DOCUMENT_RECIPIENTS DCR ON DCR.DOC_UID = DC.DOC_UID \n"+
                     "LEFT JOIN TDOC_DOCUMENT_INFO DCI ON DCI.DOC_UID = DC.DOC_UID \n"+
@@ -99,7 +99,7 @@ const controller = {
                     db.detach();
                 });
             });
-        }
+        } else return res.status(403).json({msg: 'کاربری شما غیر فعال می باشد .'});
     }
 }
 
