@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const iconv = require('iconv-lite');
 const fboption = require('../../db/dbconf');
 const { Console } = require('console');
+const fs = require('fs');
 
 // const phath = require('path');
 
@@ -83,18 +84,29 @@ const controller = {
     },
     documentatchdata: (req, res) => {
         if(req.cntId) {
+            console.log('++++++++++++++++++++++++++++++++');
             Firebird.attach(fboption, function (err, db) {
                 if (err) return res.status(403).json({msg: 'ارتباط با بانک اطلاعاتی برقرار نمی باشد .'});
                 console.log("Connection Atch successfully...");
-                console.log(JSON.stringify(req.DOC_UID.data));
-                // sql1 = "SELECT ATCH_THUMBNAIL, BLOB_UID FROM TDOC_DOCUMENT_ATTACHMENTS WHERE DOC_UID = ?";
-                // db.query(sql1, [req.cntId], (err, result) => {
-                //     if(result.length) {
-                //         console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                //         res.status(200).json(result);
-                //     } else return res.status(404).json({msg: 'هیچ موردی یافت نشد ...'});
-                //     db.detach();
-                // });
+                let docUid = iconv.decode(req.body.DOC_UID.data, 'WINDOWS-1251')
+                console.log(docUid);
+                sql1 = "SELECT ATCH_THUMBNAIL, BLOB_UID FROM TDOC_DOCUMENT_ATTACHMENTS WHERE DOC_UID = ?";
+                db.query(sql1, [docUid], (err, result) => {
+                    if(result.length) {
+                        console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                        console.log(result);
+                        for (let i=0 ; i<result.length; i++) {
+                            result[i].ATCH_THUMBNAIL(function(err, name, e) {
+                                if (err) throw err;
+                                var imgStream = fs.createWriteStream('public/applog/thumbnail' + i + '.jpg');
+                                e.pipe(imgStream);
+                            });
+                            result[i].THUMBNAIL_FILE = 'http://localhost:5000/applog/thumbnail' + i + '.jpg';
+                        };
+                        res.status(200).json(result);
+                    } else return res.status(404).json({msg: 'هیچ موردی یافت نشد ...'});
+                    db.detach();
+                });
             });
         } else return res.status(403).json({msg: 'کاربری شما غیر فعال می باشد .'});
     }
