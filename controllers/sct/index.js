@@ -82,7 +82,7 @@ const controller = {
             });
         }
     },
-    documentatchdata: (req, res) => {
+    documentatchdata: async (req, res) => {
         if(req.cntId) {
             console.log('++++++++++++++++++++++++++++++++');
             Firebird.attach(fboption, function (err, db) {
@@ -90,23 +90,29 @@ const controller = {
                 console.log("Connection Atch successfully...");
                 let docUid = iconv.decode(req.body.DOC_UID.data, 'WINDOWS-1251')
                 console.log(docUid);
-                sql1 = "SELECT ATCH_THUMBNAIL, BLOB_UID FROM TDOC_DOCUMENT_ATTACHMENTS WHERE DOC_UID = ?";
-                db.query(sql1, [docUid], (err, result) => {
-                    if(result.length) {
-                        console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                        console.log(result);
-                        for (let i=0 ; i<result.length; i++) {
-                            result[i].ATCH_THUMBNAIL(function(err, name, e) {
-                                if (err) throw err;
-                                var imgStream = fs.createWriteStream('public/applog/thumbnail' + i + '.jpg');
-                                e.pipe(imgStream);
-                            });
-                            result[i].THUMBNAIL_FILE = 'http://localhost:5000/applog/thumbnail' + i + '.jpg';
-                        };
-                        res.status(200).json(result);
-                    } else return res.status(404).json({msg: 'هیچ موردی یافت نشد ...'});
-                    db.detach();
-                });
+                db.transaction(function(err, transaction) {
+                    sql1 = "SELECT ATCH_THUMBNAIL, BLOB_UID FROM TDOC_DOCUMENT_ATTACHMENTS WHERE DOC_UID = ?";
+                    db.query(sql1, [docUid], async (err, result) => {
+                        if(err) return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
+                        if(result.length) {
+                            console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                            console.log(result);
+                            for (let i=0 ; i<result.length; i++) {
+                                const thm_data = await result[i].ATCH_THUMBNAIL(async (err, name, e) => {
+                                    if (err) return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
+                                    var imgStream = await fs.createWriteStream('public/applog/thumbnail' + i + '.jpg');
+                                    await e.pipe(imgStream);
+                                    return e;
+                                });
+                                console.log(thm_data);
+                                result[i].THUMBNAIL_DATA = thm_data;
+                                result[i].THUMBNAIL_FILE = 'http://localhost:5000/applog/thumbnail' + i + '.jpg';
+                            };
+                            res.status(200).json(result);
+                        } else return res.status(404).json({msg: 'هیچ موردی یافت نشد ...'});
+                        db.detach();
+                    });
+                })
             });
         } else return res.status(403).json({msg: 'کاربری شما غیر فعال می باشد .'});
     }
