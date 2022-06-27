@@ -5,6 +5,7 @@ const iconv = require('iconv-lite');
 const fboption = require('../../db/dbconf');
 const { Console } = require('console');
 const fs = require('fs');
+const Stream = require('stream');
 
 // const phath = require('path');
 
@@ -82,7 +83,7 @@ const controller = {
             });
         }
     },
-    documentatchdata: async (req, res) => {
+    documentatchdata: (req, res) => {
         if(req.cntId) {
             console.log('++++++++++++++++++++++++++++++++');
             Firebird.attach(fboption, function (err, db) {
@@ -91,24 +92,60 @@ const controller = {
                 let docUid = iconv.decode(req.body.DOC_UID.data, 'WINDOWS-1251')
                 console.log(docUid);
                 db.transaction(function(err, transaction) {
-                    sql1 = "SELECT ATCH_THUMBNAIL, BLOB_UID FROM TDOC_DOCUMENT_ATTACHMENTS WHERE DOC_UID = ?";
+                    sql1 = "SELECT DOCATCH_UID, BLOB_UID FROM TDOC_DOCUMENT_ATTACHMENTS WHERE DOC_UID = ?";
                     db.query(sql1, [docUid], async (err, result) => {
                         if(err) return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
                         if(result.length) {
                             console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                             console.log(result);
-                            for (let i=0 ; i<result.length; i++) {
-                                const thm_data = await result[i].ATCH_THUMBNAIL(async (err, name, e) => {
-                                    if (err) return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
-                                    var imgStream = await fs.createWriteStream('public/applog/thumbnail' + i + '.jpg');
-                                    await e.pipe(imgStream);
-                                    return e;
-                                });
-                                console.log(thm_data);
-                                result[i].THUMBNAIL_DATA = thm_data;
-                                result[i].THUMBNAIL_FILE = 'http://localhost:5000/applog/thumbnail' + i + '.jpg';
-                            };
+                            // for (let i=0 ; i<result.length; i++) {
+                            //     result[i].ATCH_THUMBNAIL((err, name, e) => {
+                            //         if (err) return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
+                            //         var imgStream = await fs.createWriteStream('public/applog/thumbnail' + i + '.jpg');
+                            //         e.pipe(imgStream);
+                            //         let buffer = new Buffer.from(e, 'base64');
+                            //         console.log(buffer.toString())
+                            //     });
+                            //     // console.log(thm_data);
+                            //     result[i].THUMBNAIL_DATA = thm_data;
+                            //     result[i].THUMBNAIL_FILE = 'http://localhost:5000/applog/thumbnail' + i + '.jpg';
+                            //     // result[i].IMG_DATA = imgdata;
+                            // };
                             res.status(200).json(result);
+                        } else return res.status(404).json({msg: 'هیچ موردی یافت نشد ...'});
+                        db.detach();
+                    });
+                })
+            });
+        } else return res.status(403).json({msg: 'کاربری شما غیر فعال می باشد .'});
+    },
+    atchstreamimage: (req, res) => {
+        if(req.cntId) {
+            console.log('++++++++++++++++++++++++++++++++');
+            Firebird.attach(fboption, function (err, db) {
+                if (err) return res.status(403).json({msg: 'ارتباط با بانک اطلاعاتی برقرار نمی باشد .'});
+                console.log("Connection AtchImg successfully...");
+                let atchUid = iconv.decode(req.body.DOCATCH_UID.data, 'WINDOWS-1251')
+                console.log(atchUid);
+                db.transaction(function(err, transaction) {
+                    sql1 = "SELECT ATCH_THUMBNAIL, ATCH_SIZE, BLOB_UID FROM TDOC_DOCUMENT_ATTACHMENTS WHERE DOCATCH_UID = ?";
+                    db.query(sql1, [atchUid], async (err, result) => {
+                        if(err) return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
+                        if(result.length) {
+                            console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                            console.log(result);
+                            const fileSize = result[0].ATCH_SIZE
+                            result[0].ATCH_THUMBNAIL((err, name, e) => {
+                                if (err) return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
+                                e.pipe(Stream.Writable);
+                                
+                            });
+                            const head = {
+                                'Content-Length': fileSize,
+                                'Content-Type': 'image/jpg'
+                            }
+                            res.writeHead(200, head);
+                            res.json(Stream.Readable);
                         } else return res.status(404).json({msg: 'هیچ موردی یافت نشد ...'});
                         db.detach();
                     });
