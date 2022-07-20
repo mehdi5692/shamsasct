@@ -193,22 +193,27 @@ const controller = {
                                     if(result.length) {
                                         console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                                         for (let i=0 ; i<result.length; i++) {
+                                            console.log(i);
                                             let buffer = []
                                             await new Promise(async (resolve, reject) => {
                                                 await result[i].ATCH_THUMBNAIL(async (err, name, e) => {
-                                                    console.log('test1');
+                                                    console.log('test' + i);
                                                     let buffers = [];
                                                     if (err) {
                                                         res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده .....'});
                                                     } else {
-                                                        e.on('data', (chunk) => {
+                                                        await e.on('data', (chunk) => {
                                                             buffers.push(chunk);
+                                                            console.log(buffers);
                                                         });
-                                                        await e.once('end', () => {
+                                                        e.once('end', () => {
+                                                            console.log(buffers);
                                                             // buffer = Buffer.concat(buffers);
-                                                            console.log(buffer.toString('base64'));   
+                                                            // console.log(buffer.toString('base64'));   
                                                             // return buffer.toString('base64');
                                                             resolve(Buffer.concat(buffers));
+                                                            db.detach();
+
                                                         });
                                                     }
                                                 });

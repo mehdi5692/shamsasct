@@ -24,7 +24,8 @@ const indexRouter = require('./routes');
 //     credentials: true,
 // }
 // app.use(cors(corsOptions));
-app.use(cors({ credentials:true, origin:'http://localhost:3000' }));
+// app.use(cors({ credentials:true, origin:'http://localhost:3000' }));
+app.use(cors());
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));

@@ -10,7 +10,7 @@ router.get('/', verifyToken, sctController.fetchAll);
 router.get('/cardtable', verifyToken, sctController.cardtable);
 router.get('/allincomdocuments', verifyToken, sctController.allincomdocuments);
 router.get('/allissudocuments', verifyToken, sctController.allissudocuments);
-router.post('/documentatchdata', verifyToken, sctController.documentatchdata);
+router.post('/documentatchdata', sctController.documentatchdata);
 router.post('/atchstreamimage', verifyToken, sctController.atchstreamimage);
 
 module.exports = router;
