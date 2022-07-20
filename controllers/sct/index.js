@@ -131,7 +131,7 @@ const controller = {
                             return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
                         } else {
                             if(result.length) {
-                                console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                                console.log("OK@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
                                 res.status(200).json(result);
                             } else return res.status(404).json({msg: 'هیچ موردی یافت نشد ...'});
                         }
@@ -159,7 +159,7 @@ const controller = {
                             return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
                         } else {
                             if(result.length) {
-                                console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                                console.log("OK^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
                                 res.status(200).json(result);
                             } else return res.status(404).json({msg: 'هیچ موردی یافت نشد ...'});
                         }
@@ -170,13 +170,14 @@ const controller = {
         }
     },
     documentatchdata: async (req, res) => {
-        if(req.cntId) {
+        // if(req.cntId) {
             console.log('++++++++++++++++++++++++++++++++');
             await Firebird.attach(fboption, async function (err, db) {
                 if (err) {
                     return res.status(403).json({msg: 'ارتباط با بانک اطلاعاتی برقرار نمی باشد .'});
                 } else {
                     console.log("Connection Atch successfully...");
+                    // console.log(req.body.DOC_UID);
                     let docUid = iconv.decode(req.body.DOC_UID.data, 'WINDOWS-1251')
                     console.log(docUid);
                     db.transaction(async function(err, transaction) {
@@ -188,7 +189,7 @@ const controller = {
                                 if(err) {
                                     return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
                                 } else {
-                                    if(err) return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
+                                    if(err) return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ....'});
                                     if(result.length) {
                                         console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                                         for (let i=0 ; i<result.length; i++) {
@@ -198,17 +199,17 @@ const controller = {
                                                     console.log('test1');
                                                     let buffers = [];
                                                     if (err) {
-                                                        res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
+                                                        res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده .....'});
                                                     } else {
                                                         e.on('data', (chunk) => {
                                                             buffers.push(chunk);
                                                         });
                                                         await e.once('end', () => {
                                                             // buffer = Buffer.concat(buffers);
-                                                            // console.log(buffer.toString('base64'));   
+                                                            console.log(buffer.toString('base64'));   
                                                             // return buffer.toString('base64');
                                                             resolve(Buffer.concat(buffers));
-                                                        })
+                                                        });
                                                     }
                                                 });
                                             }).then(buf => {
@@ -217,14 +218,14 @@ const controller = {
                                             
                                             // console.log(buffer.toString('base64'));
                                             result[i].THUMBNAIL_DATA = buffer.toString('base64');
-                                            console.log(result[i]);
+                                            // console.log(result[i]);
                                             // result[i].THUMBNAIL_FILE = 'http://localhost:5000/applog/thumbnail' + i + '.jpg';
                                             // result[i].IMG_DATA = imgdata;
                                             // await imageconvertor(result[i].DOCATCH_UID.toString()).then(str =>{
                                             //     console.log(str);
                                             // });
                                             // console.log(readBLOB(result[i].ATCH_THUMBNAIL));
-                                            
+                                            db.detach();
                                             
                                         };
                                         console.log(result);
@@ -237,7 +238,7 @@ const controller = {
                     });
                 }
             });
-        } else return res.status(403).json({msg: 'کاربری شما غیر فعال می باشد .'});
+        // } else return res.status(403).json({msg: 'کاربری شما غیر فعال می باشد .'});
     },
     atchstreamimage: (req, res) => {
         // if(req.cntId) {
@@ -261,7 +262,7 @@ const controller = {
                                 const fileSize = rows[0].ATCH_SIZE
                                 rows[0].ATCH_THUMBNAIL(function(err, name, e) {
                                     if(err) {
-                                        return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
+                                        return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ....'});
                                     } else {
                                         let buffers = []
                                         e.on('data', (chunk) => {
