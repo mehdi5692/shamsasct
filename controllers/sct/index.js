@@ -10,72 +10,78 @@ const { resolve } = require('path');
 const { rejects } = require('assert');
 const { EventEmitter } = require('stream');
 
-// const phath = require('path');
+const tumblerConvertor = (uid) => {
+    console.log('++++++++++++++++++++++++++++++++');
+    Firebird.attach(fboption, function (err, db) {
+        if (err) {
+            return res.status(403).json({msg: 'ارتباط با بانک اطلاعاتی برقرار نمی باشد .'});
+        } else {
+            console.log("Connection Atch successfully...");
+            // console.log(req.body.DOC_UID);
+            console.log(uid);
+            db.transaction(function(err, transaction) {
+                if(err) {
+                    return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
+                } else {
+                    sql1 = "SELECT DOCATCH_UID, ATCH_THUMBNAIL, BLOB_UID FROM TDOC_DOCUMENT_ATTACHMENTS WHERE DOC_UID = ?";
+                    db.query(sql1, [uid], (err, result) => {
+                        if(err) {
+                            return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
+                        } else {
+                            if(err) return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ....'});
+                            if(result.length) {
+                                console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                                for (let i=0 ; i<result.length; i++) {
+                                    // tumblerconvertor()
+                                    console.log(result[i].DOCATCH_UID);
+                                    let buffer = []
+                                    result[i].ATCH_THUMBNAIL(async (err, name, e) => {
+                                        console.log('test' + i);
+                                        let buffers = [];
+                                        if (err) {
+                                            res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده .....'});
+                                            // reject(err);
+                                            // return;
+                                        }
+                                        console.log("OK" + i);
+                                        e.once('data', (chunk) => {
+                                            buffers.push(chunk);
+                                            console.log(buffers);
+                                        });
+                                        await e.once('end', () => {
+                                            
+                                            // buffer = Buffer.concat(buffers);
+                                            // console.log(buffer.toString('base64'));   
+                                            // return buffer.toString('base64');
+                                            Buffer.concat(buffers);
+                                            console.log(buffer);
+                                        });
+                                    });
+                                    result[i].THUMBNAIL_DATA = buffer.toString('base64');
+                                    // console.log(buffer.toString('base64'));
+                                    
+                                    // console.log(result[i]);
+                                    // result[i].THUMBNAIL_FILE = 'http://localhost:5000/applog/thumbnail' + i + '.jpg';
+                                    // result[i].IMG_DATA = imgdata;
+                                    // await imageconvertor(result[i].DOCATCH_UID.toString()).then(str =>{
+                                    //     console.log(str);
+                                    // });
+                                    // console.log(readBLOB(result[i].ATCH_THUMBNAIL));
+                                    
+                                };
+                                console.log(result);
+                                return(result);
+                                db.detach();
+                            } else return res.status(404).json({msg: 'هیچ موردی یافت نشد ...'});
+                        }
+                        // db.detach();
+                    });
+                }
+            });
+        }
+    });
+}
 
-
-// const imageconvertor = async (atchUid) => {
-//     if(atchUid) {
-//         console.log('imageconvertor');
-//         Firebird.attach(fboption, function (err, db) {
-//             if (err) {
-//                 return('ارتباط با بانک اطلاعاتی برقرار نمی باشد .');
-//             } else {
-//                 console.log("Connection AtchImg successfully...");
-//                 // console.log(req.body);
-//                 console.log(atchUid);
-//                 sql1 = "SELECT ATCH_THUMBNAIL, ATCH_SIZE, BLOB_UID FROM TDOC_DOCUMENT_ATTACHMENTS WHERE DOCATCH_UID = ?";
-//                 db.query(sql1, [atchUid], async (err, rows) => {
-//                     if(err) {
-//                         return('در بارگزاری اطلاعات مشکلی رخ داده ...');
-//                     } else {
-//                         if(rows.length) {
-//                             console.log("OK atchstreamimage!");
-//                             // console.log(result);
-//                             await rows[0].ATCH_THUMBNAIL(async function(err, name, e) {
-//                                 if(err) {
-//                                     return('در بارگزاری اطلاعات مشکلی رخ داده ...');
-//                                 } else {
-//                                     let buffers = []
-//                                     e.on('data', (chunk) => {
-//                                         buffers.push(chunk);
-//                                     });
-//                                     await e.on('end', () => {
-//                                         let buffer = Buffer.concat(buffers);
-//                                         console.log('output data:');
-//                                         console.log(buffer.toString('base64'));
-//                                         return buffer.toString('base64');
-//                                     });
-//                                 }
-//                             });
-//                         } else return('هیچ موردی یافت نشد ...');
-//                     }
-//                     db.detach();
-//                 });
-//             }
-//         });
-//     } else return('کاربری شما غیر فعال می باشد .');
-// }
-// function readBLOB(callback) {
-//     let result = []
-//     async function f() {
-//         await new Promise(async (resolve, reject) => {
-//             await callback(async (err, _, eventEmitter) => {
-//                 let buffers = [];
-//                 if (err) reject(err);
-//                 eventEmitter.on("data", chunk => {
-//                     buffers.push(chunk);
-//                 });
-//                 await eventEmitter.once("end", function (e) {
-//                     resolve(Buffer.concat(buffers));
-//                 });
-//             });
-//         }).then(buf => {
-//             result = buf
-//         })
-//     }
-//     f();
-//     return result;
-// } 
 const controller = {
     create: (req, res) => {
         res.json("{text: 'sdfadfafsdf'}");
@@ -171,78 +177,9 @@ const controller = {
     },
     documentatchdata: async (req, res) => {
         // if(req.cntId) {
-            console.log('++++++++++++++++++++++++++++++++');
-            await Firebird.attach(fboption, async function (err, db) {
-                if (err) {
-                    return res.status(403).json({msg: 'ارتباط با بانک اطلاعاتی برقرار نمی باشد .'});
-                } else {
-                    console.log("Connection Atch successfully...");
-                    // console.log(req.body.DOC_UID);
-                    let docUid = iconv.decode(req.body.DOC_UID.data, 'WINDOWS-1251')
-                    console.log(docUid);
-                    db.transaction(async function(err, transaction) {
-                        if(err) {
-                            return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
-                        } else {
-                            sql1 = "SELECT DOCATCH_UID, ATCH_THUMBNAIL, BLOB_UID FROM TDOC_DOCUMENT_ATTACHMENTS WHERE DOC_UID = ?";
-                            db.query(sql1, [docUid], async (err, result) => {
-                                if(err) {
-                                    return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ...'});
-                                } else {
-                                    if(err) return res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده ....'});
-                                    if(result.length) {
-                                        console.log("OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                                        for (let i=0 ; i<result.length; i++) {
-                                            console.log(i);
-                                            let buffer = []
-                                            await new Promise(async (resolve, reject) => {
-                                                await result[i].ATCH_THUMBNAIL(async (err, name, e) => {
-                                                    console.log('test' + i);
-                                                    let buffers = [];
-                                                    if (err) {
-                                                        res.status(404).json({msg: 'در بارگزاری اطلاعات مشکلی رخ داده .....'});
-                                                    } else {
-                                                        await e.on('data', (chunk) => {
-                                                            buffers.push(chunk);
-                                                            console.log(buffers);
-                                                        });
-                                                        e.once('end', () => {
-                                                            console.log(buffers);
-                                                            // buffer = Buffer.concat(buffers);
-                                                            // console.log(buffer.toString('base64'));   
-                                                            // return buffer.toString('base64');
-                                                            resolve(Buffer.concat(buffers));
-                                                            db.detach();
-
-                                                        });
-                                                    }
-                                                });
-                                            }).then(buf => {
-                                                buffer = buf;
-                                            })
-                                            
-                                            // console.log(buffer.toString('base64'));
-                                            result[i].THUMBNAIL_DATA = buffer.toString('base64');
-                                            // console.log(result[i]);
-                                            // result[i].THUMBNAIL_FILE = 'http://localhost:5000/applog/thumbnail' + i + '.jpg';
-                                            // result[i].IMG_DATA = imgdata;
-                                            // await imageconvertor(result[i].DOCATCH_UID.toString()).then(str =>{
-                                            //     console.log(str);
-                                            // });
-                                            // console.log(readBLOB(result[i].ATCH_THUMBNAIL));
-                                            db.detach();
-                                            
-                                        };
-                                        console.log(result);
-                                        res.status(200).json(result);
-                                    } else return res.status(404).json({msg: 'هیچ موردی یافت نشد ...'});
-                                }
-                                db.detach();
-                            });
-                        }
-                    });
-                }
-            });
+            let docUid = iconv.decode(req.body.DOC_UID.data, 'WINDOWS-1251');
+            tumbs = await tumblerConvertor(docUid);
+            res.status(200).json(tumbs);
         // } else return res.status(403).json({msg: 'کاربری شما غیر فعال می باشد .'});
     },
     atchstreamimage: (req, res) => {
